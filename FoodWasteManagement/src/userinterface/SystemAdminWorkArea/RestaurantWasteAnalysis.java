@@ -1,0 +1,174 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package userinterface.SystemAdminWorkArea;
+import Business.Ecosystem;
+import Business.Order.Order;
+import Business.Order.OrderItem;
+import Business.WorkQueue.RestauranttoCharityRequest;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.util.Date;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.ui.ApplicationFrame;
+import org.jfree.ui.RefineryUtilities;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+/**
+ *
+ * @author naray
+ */
+public class RestaurantWasteAnalysis extends javax.swing.JPanel {
+    
+    private JPanel userProcessContainer;
+    private Ecosystem system;
+    /**
+     * Creates new form RestaurantWasteAnalysis
+     */
+    public RestaurantWasteAnalysis(JPanel userProcessContainer, Ecosystem system) {
+        this.userProcessContainer=userProcessContainer;
+        this.system=system;
+        initUI();
+        initComponents();
+        
+    }
+    private void initUI() {
+
+        XYDataset dataset = createDataset();
+        JFreeChart chart = createChart(dataset);
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        chartPanel.setBackground(Color.white);
+       Button button= new Button();
+       userProcessContainer.add(chartPanel, BorderLayout.CENTER);
+       userProcessContainer.add(button);
+    }
+    
+    
+     class  RestAnalysis{
+    String RestaurantName;
+    int Rest_ID;
+    int quantity_donated;
+        }
+    
+      private XYDataset createDataset() {
+          RestAnalysis[] restArray=new RestAnalysis[100];
+        XYSeries series = new XYSeries("Sales over months");
+       
+        
+  
+        int r_count=0;
+        for(RestauranttoCharityRequest request:system.getCompletedCharityList()){
+            int flag=0;
+            for(RestAnalysis r: restArray){
+                if(r.RestaurantName==request.getRestaurantEnterprise().getName()){
+                    r.quantity_donated+=request.getQuantity()*request.getRawMaterial().getMaxprice();
+                    flag=1;
+                }
+            }
+            if(flag==0){
+                RestAnalysis ra=new RestAnalysis();
+                ra.RestaurantName=request.getRestaurantEnterprise().getName();
+                ra.quantity_donated=request.getQuantity()*request.getRawMaterial().getMaxprice();
+                ra.Rest_ID=r_count;
+                r_count++;
+            }
+        }
+        
+        for(RestAnalysis r: restArray)
+              series.add(r.Rest_ID,r.quantity_donated);
+
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(series);
+
+        return dataset;
+    }
+    
+         
+      
+      
+      
+      
+      private JFreeChart createChart(XYDataset dataset) {
+
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                "Sales per month", 
+                "month", 
+                "Sales(€)", 
+                dataset, 
+                PlotOrientation.VERTICAL,
+                true, 
+                true, 
+                false 
+        );
+
+        XYPlot plot = chart.getXYPlot();
+
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.RED);
+        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.white);
+
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.BLACK);
+
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.BLACK);
+
+        chart.getLegend().setFrame(BlockBorder.NONE);
+
+        chart.setTitle(new TextTitle("Sales per month",
+                        new Font("Serif", java.awt.Font.BOLD, 18)
+                )
+        );
+
+        return chart;
+
+    }
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1000, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 700, Short.MAX_VALUE)
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
+}
